@@ -21,7 +21,7 @@ function info() {
   return {
     apiversion: "1",
     author: "SnakeySnek",       // TODO: Your Battlesnake Username
-    color: "#888888", // TODO: Choose color
+    color: "magenta", // TODO: Choose color
     head: "default",  // TODO: Choose head
     tail: "default",  // TODO: Choose tail
   };
@@ -67,14 +67,91 @@ function move(gameState) {
   }
 
   // TODO: Step 1 - Prevent your Battlesnake from moving out of bounds
-  // boardWidth = gameState.board.width;
-  // boardHeight = gameState.board.height;
+  const boardWidth = gameState.board.width;
+  const boardHeight = gameState.board.height;
+
+  if (myHead.x === 0) {
+    isMoveSafe.left = false;
+  }
+  if (myHead.x === boardWidth - 1) {
+    isMoveSafe.right = false;
+  }
+  if (myHead.y === 0) {
+    isMoveSafe.down = false;
+  }
+  if (myHead.y === boardHeight - 1) {
+    isMoveSafe.up = false;
+  }
 
   // TODO: Step 2 - Prevent your Battlesnake from colliding with itself
-  // myBody = gameState.you.body;
+  const myBody = gameState.you.body;
+
+  // Check if moving in each direction would hit our own body
+  if (isMoveSafe.up) {
+    const nextPosition = { x: myHead.x, y: myHead.y + 1 };
+    if (myBody.some(segment => segment.x === nextPosition.x && segment.y === nextPosition.y)) {
+      isMoveSafe.up = false;
+    }
+  }
+  if (isMoveSafe.down) {
+    const nextPosition = { x: myHead.x, y: myHead.y - 1 };
+    if (myBody.some(segment => segment.x === nextPosition.x && segment.y === nextPosition.y)) {
+      isMoveSafe.down = false;
+    }
+  }
+  if (isMoveSafe.left) {
+    const nextPosition = { x: myHead.x - 1, y: myHead.y };
+    if (myBody.some(segment => segment.x === nextPosition.x && segment.y === nextPosition.y)) {
+      isMoveSafe.left = false;
+    }
+  }
+  if (isMoveSafe.right) {
+    const nextPosition = { x: myHead.x + 1, y: myHead.y };
+    if (myBody.some(segment => segment.x === nextPosition.x && segment.y === nextPosition.y)) {
+      isMoveSafe.right = false;
+    }
+  }
 
   // TODO: Step 3 - Prevent your Battlesnake from colliding with other Battlesnakes
-  // opponents = gameState.board.snakes;
+  const opponents = gameState.board.snakes;
+
+  // Check if moving in each direction would hit any opponent snake
+  if (isMoveSafe.up) {
+    const nextPosition = { x: myHead.x, y: myHead.y + 1 };
+    for (const opponent of opponents) {
+      if (opponent.body.some(segment => segment.x === nextPosition.x && segment.y === nextPosition.y)) {
+        isMoveSafe.up = false;
+        break;
+      }
+    }
+  }
+  if (isMoveSafe.down) {
+    const nextPosition = { x: myHead.x, y: myHead.y - 1 };
+    for (const opponent of opponents) {
+      if (opponent.body.some(segment => segment.x === nextPosition.x && segment.y === nextPosition.y)) {
+        isMoveSafe.down = false;
+        break;
+      }
+    }
+  }
+  if (isMoveSafe.left) {
+    const nextPosition = { x: myHead.x - 1, y: myHead.y };
+    for (const opponent of opponents) {
+      if (opponent.body.some(segment => segment.x === nextPosition.x && segment.y === nextPosition.y)) {
+        isMoveSafe.left = false;
+        break;
+      }
+    }
+  }
+  if (isMoveSafe.right) {
+    const nextPosition = { x: myHead.x + 1, y: myHead.y };
+    for (const opponent of opponents) {
+      if (opponent.body.some(segment => segment.x === nextPosition.x && segment.y === nextPosition.y)) {
+        isMoveSafe.right = false;
+        break;
+      }
+    }
+  }
 
   // Are there any safe moves left?
   const safeMoves = Object.keys(isMoveSafe).filter(key => isMoveSafe[key]);
