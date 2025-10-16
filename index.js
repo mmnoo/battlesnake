@@ -209,7 +209,7 @@ function move(gameState) {
     if (myHead.y < boardHeight - 1) emergencyMoves.push('up');
     if (myHead.x > 0) emergencyMoves.push('left');
     if (myHead.x < boardWidth - 1) emergencyMoves.push('right');
-    
+
     const emergencyMove = emergencyMoves.length > 0 ? emergencyMoves[0] : 'down';
     console.log(`MOVE ${gameState.turn}: No safe moves detected! Emergency move: ${emergencyMove}`);
     return { move: emergencyMove };
@@ -250,11 +250,22 @@ function move(gameState) {
     }
   }
 
+  // Randomize choice between preferred circling move and random move
+  let nextMove = null;
   const randomSafeMove = safeMoves[Math.floor(Math.random() * safeMoves.length)];
 
-  const nextMove = preferredMove || randomSafeMove;
+  if (preferredMove) {
+    // 50/50 chance between preferred circling move and random move
+    const usePreferred = Math.random() < 0.5;
+    nextMove = usePreferred ? preferredMove : randomSafeMove;
+    const moveType = usePreferred ? "circling pattern" : "random";
+    console.log(`MOVE ${gameState.turn}: ${nextMove} (${moveType})`);
+  } else {
+    // No preferred move available, use random
+    nextMove = randomSafeMove;
+    console.log(`MOVE ${gameState.turn}: ${nextMove} (random - no preferred move)`);
+  }
 
-  console.log(`MOVE ${gameState.turn}: ${nextMove} (circling pattern or random)`)
   return { move: nextMove };
 }
 
