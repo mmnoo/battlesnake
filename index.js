@@ -9,7 +9,7 @@
 //
 // To get you started we've included code to prevent your Battlesnake from moving backwards.
 // For more info see docs.battlesnake.com
-const STARVING_THRESHOLD = 20
+
 import runServer from './server.js';
 
 // info is called when you create your Battlesnake on play.battlesnake.com
@@ -153,44 +153,15 @@ function move(gameState) {
     }
   }
 
-  // TODO: Avoid food when not starving to stay lean
-  const myHealth = gameState.you.health;
-  const food = gameState.board.food;
-
-  if (myHealth > STARVING_THRESHOLD && food.length > 0) {
-    // Mark positions with food as unsafe when not starving
-    for (const foodItem of food) {
-      if (myHead.x - 1 === foodItem.x && myHead.y === foodItem.y && isMoveSafe.left) {
-        isMoveSafe.left = false;
-        console.log(`Avoiding food at (${foodItem.x}, ${foodItem.y}) - not moving left`);
-      }
-      if (myHead.x + 1 === foodItem.x && myHead.y === foodItem.y && isMoveSafe.right) {
-        isMoveSafe.right = false;
-        console.log(`Avoiding food at (${foodItem.x}, ${foodItem.y}) - not moving right`);
-      }
-      if (myHead.x === foodItem.x && myHead.y - 1 === foodItem.y && isMoveSafe.down) {
-        isMoveSafe.down = false;
-        console.log(`Avoiding food at (${foodItem.x}, ${foodItem.y}) - not moving down`);
-      }
-      if (myHead.x === foodItem.x && myHead.y + 1 === foodItem.y && isMoveSafe.up) {
-        isMoveSafe.up = false;
-        console.log(`Avoiding food at (${foodItem.x}, ${foodItem.y}) - not moving up`);
-      }
-    }
-  }
-
   // Are there any safe moves left?
 
 
-  // TODO: Step 4 - Track moves that lead to food for prioritization
-  let isFeedMove = {
-    up: false,
-    down: false,
-    left: false,
-    right: false
-  };
+  // TODO: Step 4 - Move towards food when starving, to regain health and survive longer
+  const myHealth = gameState.you.health;
+  const food = gameState.board.food;
 
-  if (food.length > 0) {
+  // Only seek food if health is low (30 or below) - keep short but not famished
+  if (myHealth <= 20 && food.length > 0) {
     // Find the closest food
     let closestFood = null;
     let shortestDistance = Infinity;
@@ -204,23 +175,32 @@ function move(gameState) {
     }
 
     if (closestFood) {
-      // Mark which directions get us closer to the food
+      // Determine which direction gets us closer to the food
+      const foodMoves = [];
+
       if (closestFood.x > myHead.x && isMoveSafe.right) {
-        isFeedMove.right = true;
+        foodMoves.push('right');
       }
       if (closestFood.x < myHead.x && isMoveSafe.left) {
-        isFeedMove.left = true;
+        foodMoves.push('left');
       }
       if (closestFood.y > myHead.y && isMoveSafe.up) {
-        isFeedMove.up = true;
+        foodMoves.push('up');
       }
       if (closestFood.y < myHead.y && isMoveSafe.down) {
-        isFeedMove.down = true;
+        foodMoves.push('down');
+      }
+
+      // If we have a safe move towards food, take it
+      if (foodMoves.length > 0) {
+        const foodMove = foodMoves[Math.floor(Math.random() * foodMoves.length)];
+        console.log(`MOVE ${gameState.turn}: Seeking food at (${closestFood.x}, ${closestFood.y}) - ${foodMove} (Health: ${myHealth})`);
+        return { move: foodMove };
       }
     }
   }
 
-  // Prioritize moves: feed moves when starving, then safe moves with circling pattern
+  // Move as little as possible - circle/spiral pattern instead of random
   const safeMoves = Object.keys(isMoveSafe).filter(key => isMoveSafe[key]);
   if (safeMoves.length == 0) {
     // Emergency: choose least dangerous move (avoid going out of bounds at minimum)
@@ -235,19 +215,8 @@ function move(gameState) {
     return { move: emergencyMove };
   }
 
-  let nextMove = null;
-
-  // Priority 1: If starving (health <= STARVING_THRESHOLD), prefer feed moves
-  if (myHealth <= STARVING_THRESHOLD) {
-    const feedMoves = Object.keys(isFeedMove).filter(key => isFeedMove[key] && isMoveSafe[key]);
-    if (feedMoves.length > 0) {
-      nextMove = feedMoves[Math.floor(Math.random() * feedMoves.length)];
-      console.log(`MOVE ${gameState.turn}: ${nextMove} (seeking food - Health: ${myHealth})`);
-      return { move: nextMove };
-    }
-  }
-
-  // Priority 2: Circling pattern for minimal movement
+  // Priority order for minimal movement: try to continue in current direction first,
+  // then turn clockwise to create a circling pattern
   const moveHistory = gameState.you.body;
   let preferredMove = null;
 
@@ -281,10 +250,11 @@ function move(gameState) {
     }
   }
 
-  // Priority 3: Fallback to first safe move
-  nextMove = preferredMove || safeMoves[0];
+  const randomSafeMove = safeMoves[Math.floor(Math.random() * safeMoves.length)];
 
-  console.log(`MOVE ${gameState.turn}: ${nextMove} (circling pattern - Health: ${myHealth})`);
+  const nextMove = preferredMove || randomSafeMove;
+
+  console.log(`MOVE ${gameState.turn}: ${nextMove} (circling pattern or random)`)
   return { move: nextMove };
 }
 
