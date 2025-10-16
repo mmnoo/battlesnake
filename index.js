@@ -200,16 +200,53 @@ function move(gameState) {
     }
   }
 
-  // Choose a random move from the safe moves
+  // Move as little as possible - circle/spiral pattern instead of random
   const safeMoves = Object.keys(isMoveSafe).filter(key => isMoveSafe[key]);
   if (safeMoves.length == 0) {
     console.log(`MOVE ${gameState.turn}: No safe moves detected! Moving down`);
     return { move: "down" };
   }
-  const nextMove = safeMoves[Math.floor(Math.random() * safeMoves.length)];
 
+  // Priority order for minimal movement: try to continue in current direction first,
+  // then turn clockwise to create a circling pattern
+  const moveHistory = gameState.you.body;
+  let preferredMove = null;
 
-  console.log(`MOVE ${gameState.turn}: ${nextMove}`)
+  if (moveHistory.length >= 2) {
+    const head = moveHistory[0];
+    const neck = moveHistory[1];
+
+    // Determine current direction
+    let currentDirection = null;
+    if (head.x > neck.x) currentDirection = 'right';
+    else if (head.x < neck.x) currentDirection = 'left';
+    else if (head.y > neck.y) currentDirection = 'up';
+    else if (head.y < neck.y) currentDirection = 'down';
+
+    // Define clockwise turn priority (creates tight circles)
+    const turnPriority = {
+      'up': ['up', 'right', 'down', 'left'],
+      'right': ['right', 'down', 'left', 'up'],
+      'down': ['down', 'left', 'up', 'right'],
+      'left': ['left', 'up', 'right', 'down']
+    };
+
+    if (currentDirection && turnPriority[currentDirection]) {
+      // Try moves in clockwise priority order
+      for (const move of turnPriority[currentDirection]) {
+        if (safeMoves.includes(move)) {
+          preferredMove = move;
+          break;
+        }
+      }
+    }
+  }
+
+  const randomSafeMove = safeMoves[Math.floor(Math.random() * safeMoves.length)];
+
+  const nextMove = preferredMove || randomSafeMove;
+
+  console.log(`MOVE ${gameState.turn}: ${nextMove} (circling pattern or random)`)
   return { move: nextMove };
 }
 
