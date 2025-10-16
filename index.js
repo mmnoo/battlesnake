@@ -160,6 +160,50 @@ function move(gameState) {
     return { move: "down" };
   }
 
+  // TODO: Step 4 - Move towards food when starving, to regain health and survive longer
+  const myHealth = gameState.you.health;
+  const food = gameState.board.food;
+  
+  // Only seek food if health is low (30 or below) - keep short but not famished
+  if (myHealth <= 30 && food.length > 0) {
+    // Find the closest food
+    let closestFood = null;
+    let shortestDistance = Infinity;
+    
+    for (const foodItem of food) {
+      const distance = Math.abs(myHead.x - foodItem.x) + Math.abs(myHead.y - foodItem.y);
+      if (distance < shortestDistance) {
+        shortestDistance = distance;
+        closestFood = foodItem;
+      }
+    }
+    
+    if (closestFood) {
+      // Determine which direction gets us closer to the food
+      const foodMoves = [];
+      
+      if (closestFood.x > myHead.x && isMoveSafe.right) {
+        foodMoves.push('right');
+      }
+      if (closestFood.x < myHead.x && isMoveSafe.left) {
+        foodMoves.push('left');
+      }
+      if (closestFood.y > myHead.y && isMoveSafe.up) {
+        foodMoves.push('up');
+      }
+      if (closestFood.y < myHead.y && isMoveSafe.down) {
+        foodMoves.push('down');
+      }
+      
+      // If we have a safe move towards food, take it
+      if (foodMoves.length > 0) {
+        const foodMove = foodMoves[Math.floor(Math.random() * foodMoves.length)];
+        console.log(`MOVE ${gameState.turn}: Seeking food at (${closestFood.x}, ${closestFood.y}) - ${foodMove} (Health: ${myHealth})`);
+        return { move: foodMove };
+      }
+    }
+  }
+
   // Choose a random move from the safe moves
   const nextMove = safeMoves[Math.floor(Math.random() * safeMoves.length)];
 
