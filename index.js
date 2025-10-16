@@ -223,8 +223,16 @@ function move(gameState) {
   // Prioritize moves: feed moves when starving, then safe moves with circling pattern
   const safeMoves = Object.keys(isMoveSafe).filter(key => isMoveSafe[key]);
   if (safeMoves.length == 0) {
-    console.log(`MOVE ${gameState.turn}: No safe moves detected! Moving down`);
-    return { move: "down" };
+    // Emergency: choose least dangerous move (avoid going out of bounds at minimum)
+    const emergencyMoves = [];
+    if (myHead.y > 0) emergencyMoves.push('down');
+    if (myHead.y < boardHeight - 1) emergencyMoves.push('up');
+    if (myHead.x > 0) emergencyMoves.push('left');
+    if (myHead.x < boardWidth - 1) emergencyMoves.push('right');
+    
+    const emergencyMove = emergencyMoves.length > 0 ? emergencyMoves[0] : 'down';
+    console.log(`MOVE ${gameState.turn}: No safe moves detected! Emergency move: ${emergencyMove}`);
+    return { move: emergencyMove };
   }
 
   let nextMove = null;
