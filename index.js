@@ -160,8 +160,8 @@ function move(gameState) {
   const myHealth = gameState.you.health;
   const food = gameState.board.food;
 
-  // Only seek food if health is low (30 or below) - keep short but not famished
-  if (myHealth <= 20 && food.length > 0) {
+  // Only seek food if health is low (80 or below) - keep short but not famished
+  if (myHealth <= 80 && food.length > 0) {
     // Find the closest food
     let closestFood = null;
     let shortestDistance = Infinity;
