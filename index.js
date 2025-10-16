@@ -154,22 +154,18 @@ function move(gameState) {
   }
 
   // Are there any safe moves left?
-  const safeMoves = Object.keys(isMoveSafe).filter(key => isMoveSafe[key]);
-  if (safeMoves.length == 0) {
-    console.log(`MOVE ${gameState.turn}: No safe moves detected! Moving down`);
-    return { move: "down" };
-  }
+
 
   // TODO: Step 4 - Move towards food when starving, to regain health and survive longer
   const myHealth = gameState.you.health;
   const food = gameState.board.food;
-  
+
   // Only seek food if health is low (30 or below) - keep short but not famished
-  if (myHealth <= 30 && food.length > 0) {
+  if (myHealth <= 20 && food.length > 0) {
     // Find the closest food
     let closestFood = null;
     let shortestDistance = Infinity;
-    
+
     for (const foodItem of food) {
       const distance = Math.abs(myHead.x - foodItem.x) + Math.abs(myHead.y - foodItem.y);
       if (distance < shortestDistance) {
@@ -177,11 +173,11 @@ function move(gameState) {
         closestFood = foodItem;
       }
     }
-    
+
     if (closestFood) {
       // Determine which direction gets us closer to the food
       const foodMoves = [];
-      
+
       if (closestFood.x > myHead.x && isMoveSafe.right) {
         foodMoves.push('right');
       }
@@ -194,7 +190,7 @@ function move(gameState) {
       if (closestFood.y < myHead.y && isMoveSafe.down) {
         foodMoves.push('down');
       }
-      
+
       // If we have a safe move towards food, take it
       if (foodMoves.length > 0) {
         const foodMove = foodMoves[Math.floor(Math.random() * foodMoves.length)];
@@ -205,10 +201,13 @@ function move(gameState) {
   }
 
   // Choose a random move from the safe moves
+  const safeMoves = Object.keys(isMoveSafe).filter(key => isMoveSafe[key]);
+  if (safeMoves.length == 0) {
+    console.log(`MOVE ${gameState.turn}: No safe moves detected! Moving down`);
+    return { move: "down" };
+  }
   const nextMove = safeMoves[Math.floor(Math.random() * safeMoves.length)];
 
-  // TODO: Step 4 - Move towards food instead of random, to regain health and survive longer
-  // food = gameState.board.food;
 
   console.log(`MOVE ${gameState.turn}: ${nextMove}`)
   return { move: nextMove };
