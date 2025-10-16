@@ -22,8 +22,8 @@ function info() {
     apiversion: "1",
     author: "SnakeySnek_sparkgeo",       // TODO: Your Battlesnake Username
     color: "#FF7F50", // TODO: Choose color
-    head: "default",  // TODO: Choose head
-    tail: "default",  // TODO: Choose tail
+    head: "sand-worm",  // TODO: Choose head
+    tail: "replit-notmark",  // TODO: Choose tail
   };
 }
 
